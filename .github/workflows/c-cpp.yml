@@ -1,0 +1,62 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install MinGW-w64
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y mingw-w64
+
+      - name: Build Themida
+        run: |
+          x86_64-w64-mingw32-gcc -O2 -s -static \
+            -DDEFAULT_MODE=MODE_THEMIDA \
+            -o themida_dumper_x64.exe \
+            themida_dumper_universal.c
+
+          i686-w64-mingw32-gcc -O2 -s -static \
+            -DDEFAULT_MODE=MODE_THEMIDA \
+            -o themida_dumper_x86.exe \
+            themida_dumper_universal.c
+
+      - name: Build VMProtect
+        run: |
+          x86_64-w64-mingw32-gcc -O2 -s -static \
+            -DDEFAULT_MODE=MODE_VMPROTECT \
+            -o vmprotect_dumper_x64.exe \
+            themida_dumper_universal.c
+
+          i686-w64-mingw32-gcc -O2 -s -static \
+            -DDEFAULT_MODE=MODE_VMPROTECT \
+            -o vmprotect_dumper_x86.exe \
+            themida_dumper_universal.c
+
+      - name: Build Runtime
+        run: |
+          x86_64-w64-mingw32-gcc -O2 -s -static \
+            -DDEFAULT_MODE=MODE_RUNTIME \
+            -o runtime_dumper_x64.exe \
+            themida_dumper_universal.c
+
+          i686-w64-mingw32-gcc -O2 -s -static \
+            -DDEFAULT_MODE=MODE_RUNTIME \
+            -o runtime_dumper_x86.exe \
+            themida_dumper_universal.c
+
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: executables
+          path: |
+            *.exe
